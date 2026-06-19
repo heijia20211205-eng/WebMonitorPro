@@ -1,91 +1,140 @@
 ﻿<!DOCTYPE html>
-<html lang="zh-CN">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>WebMonitor Pro</title>
-  <style>
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;max-width:900px;margin:20px auto;padding:0 20px;background:#f5f5f5}
-h1{color:#333;font-size:22px}
-.card{background:#fff;border-radius:10px;padding:16px 20px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
-.card h3{margin:0 0 10px;font-size:16px}
-label{display:block;font-size:13px;color:#555;margin:6px 0 2px}
-input,select{width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;box-sizing:border-box;margin-bottom:6px}
-.inline-group{display:flex;gap:10px;flex-wrap:wrap}
-.inline-group>div{flex:1;min-width:80px}
-.row{display:flex;gap:16px;flex-wrap:wrap;margin:6px 0}
-.row label{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:normal}
-button{background:#1677ff;color:#fff;border:none;padding:8px 20px;border-radius:6px;font-size:14px;cursor:pointer}
+<meta charset="UTF-8">
+<title>WebMonitor Pro</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:system-ui,sans-serif;max-width:800px;margin:20px auto;padding:0 16px;background:#f0f2f5}
+h1{font-size:20px;color:#1a1a1a}
+.box{background:#fff;border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+.box h3{font-size:15px;margin:0 0 8px}
+label{display:block;font-size:13px;color:#555;margin:5px 0 2px}
+input,select{width:100%;padding:7px 10px;border:1px solid #d9d9d9;border-radius:6px;font-size:14px;margin-bottom:5px}
+.gr{display:flex;gap:8px;flex-wrap:wrap}
+.gr>div{flex:1;min-width:70px}
+.cr{display:flex;gap:12px;flex-wrap:wrap;margin:4px 0}
+.cr label{display:inline-flex;align-items:center;gap:3px;font-weight:400}
+button{background:#1677ff;color:#fff;border:none;padding:7px 18px;border-radius:6px;font-size:14px;cursor:pointer}
 button:hover{background:#4096ff}
-.danger{background:#ff4d4f}
-.danger:hover{background:#ff7875}
-.task{border:1px solid #e8e8e8;border-radius:8px;padding:12px;margin-bottom:8px;background:#fafafa}
-.task .meta{font-size:13px}
-.badge{display:inline-block;background:#1677ff;color:#fff;border-radius:4px;padding:1px 6px;font-size:11px;margin-left:4px}
-.task-actions{margin-top:6px;display:flex;gap:8px}
-.task-actions button{font-size:12px;padding:4px 12px}
-.last-value{font-size:13px;color:#666;margin-top:4px}
-.stat{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
-.stat.on{background:#52c41a}
-.stat.off{background:#d9d9d9}
-.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#52c41a;color:#fff;padding:10px 24px;border-radius:6px;font-size:14px;display:none;z-index:999}
-.toast.err{background:#ff4d4f}
-.hint{font-size:12px;color:#999;margin-top:2px}
-hr{margin:12px 0;border:0;border-top:1px solid #eee}
-  </style>
+.rm{background:#ff4d4f}
+.rm:hover{background:#ff7875}
+.t{background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:10px 12px;margin-bottom:6px}
+.t .n{font-weight:600;font-size:13px}
+.t .v{font-size:14px;color:#1677ff;margin:2px 0}
+.t .m{font-size:11px;color:#999}
+.act{margin-top:4px;display:flex;gap:6px}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#52c41a;color:#fff;padding:8px 20px;border-radius:6px;font-size:13px;display:none;z-index:999}
+.toast.e{background:#ff4d4f}
+.st{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:3px}
+.st.g{background:#52c41a}
+.st.gy{background:#faad14}
+.sm{background:#f5f5f5;font-size:12px;color:#888;padding:6px 10px;border-radius:6px;border:1px dashed #d9d9d9}
+</style>
 </head>
 <body>
+
 <h1>WebMonitor Pro</h1>
 <div id="toast" class="toast"></div>
 
-<div class="card">
-<h3>+ 新增监控</h3>
-<label>URL</label><input type="url" id="inputUrl" placeholder="https://example.com/page" />
-<label>名称</label><input type="text" id="inputName" placeholder="如：交易所BTC价格" />
-<label>刷新间隔(秒,最小10)</label><input type="number" id="inputInterval" value="60" min="10" />
-<label>监控坐标 X Y W H</label>
-<div class="inline-group">
-<div><label>X</label><input type="number" id="inputX" value="0" /></div>
-<div><label>Y</label><input type="number" id="inputY" value="0" /></div>
-<div><label>W</label><input type="number" id="inputW" value="200" /></div>
-<div><label>H</label><input type="number" id="inputH" value="50" /></div>
+<div class="box">
+<h3>添加监控</h3>
+<label>URL</label><input id="u" placeholder="https://example.com/page">
+<label>名称</label><input id="n" placeholder="价格监控">
+<label>刷新(秒,>=10)</label><input id="iv" type="number" value="60" min="10">
+
+<label>区域坐标</label>
+<div class="gr">
+<div><label>X</label><input id="x" type="number" value="0"></div>
+<div><label>Y</label><input id="y" type="number" value="0"></div>
+<div><label>W</label><input id="w" type="number" value="200"></div>
+<div><label>H</label><input id="h" type="number" value="50"></div>
 </div>
-<div class="hint">F12检查元素,看css盒模型的width/height/top/left</div>
-<label>触发方式</label>
-<div class="row">
-<label><input type="checkbox" id="inputAlertOnChange" /> 数值变化提醒</label>
-<label><input type="checkbox" id="inputAlertOnTarget" /> 达到目标提醒</label>
+
+<label>触发</label>
+<div class="cr">
+<label><input id="chg" type="checkbox> 变化提醒</label>
+<label><input id="tgt" type="checkbox> 目标提醒</label>
 </div>
-<label>目标值(勾选上面后生效)</label>
-<div class="inline-group">
-<div><label>运算</label><select id="inputOperator">
-<option value="==">==</option><option value=">">&gt;</option><option value=">=">&gt;=</option><option value="<">&lt;</option><option value="<=">&lt;=</option>
+
+<label>目标</label>
+<div class="gr">
+<div><select id="op">
+<option value="==">==</option><option value=">">&gt;</option><option value=">=">&gt;=</option>
+<option value="<">&lt;</option><option value="<=">&lt;=</option>
 </select></div>
-<div><label>值</label><input type="text" id="inputTargetValue" placeholder="50000" /></div>
+<div><input id="tv" placeholder="50000"></div>
 </div>
-<label>提醒方式</label>
-<div class="row">
-<label><input type="checkbox" id="inputNotifyQQ" checked /> QQ消息</label>
-<label><input type="checkbox" id="inputNotifySound" checked /> 提示音</label>
+
+<label>提醒</label>
+<div class="cr">
+<label><input id="qq" type="checkbox" checked> QQ消息</label>
+<label><input id="sd" type="checkbox" checked> 提示音</label>
 </div>
-<label>提示音</label><select id="inputSound" style="width:200px">
-<option value="beep">Beep</option><option value="ring">Ring</option><option value="alert">Alert</option><option value="siren">Siren</option>
+
+<label>音效</label><select id="sf" style="width:160px">
+<option>beep</option><option>ring</option><option>alert</option><option>siren</option>
 </select>
 <br><br>
-<button id="btnAdd">+ 添加监控</button>
+<button id="addBtn">添加</button>
 </div>
 
-<div class="card">
-<h3>监控任务列表</h3>
-<div id="taskList"><p style="color:#999">暂无任务</p></div>
+<div class="box">
+<h3>任务列表</h3>
+<div id="list"><p style="color:#999">暂无</p></div>
 </div>
 
-<div class="card" style="border:1px dashed #ccc;background:#f9f9f9">
-<h3>测试提醒</h3>
-<button id="btnTestSound">播放提示音</button>
-<button id="btnTestNotify" style="margin-left:8px">测试QQ通知</button>
-<span id="testResult" style="margin-left:12px;font-size:13px;color:#888"></span>
+<div class="sm">
+<button id="tsSound">测试音</button>
+<button id="tsQQ" style="margin-left:6px">测试QQ</button>
+<span id="tsR" style="margin-left:10px"></span>
 </div>
 
-<script src="options.js"></script>
+<script>
+function $(id){return document.getElementById(id)}
+function toast(m,e){
+var t=$("toast");t.textContent=m;t.className="toast"+(e?" e":"");t.style.display="block"
+setTimeout(function(){t.style.display="none"},2500)
+}
+
+async function load(){
+var r=await chrome.runtime.sendMessage({type:"TASK_LIST"})
+if(!r||!r.success||!r.data){$("list").innerHTML='<p style="color:#999">暂无</p>';return}
+var h="";r.data.sort(function(a,b){return a.createdAt-b.createdAt})
+for(var i=0;i<r.data.length;i++){var t=r.data[i]
+var s=t.enabled!==false?"g":"gy"
+var v=t.lastValue!==undefined?t.lastValue:"-"
+h+='<div class="t"><span class="st '+s+'"></span><span class="n">'+esc(t.name)+'</span> <span class="m">'+t.interval+'s</span>'
+h+='<div class="v">'+esc(v)+'</div><div class="m">'+esc(t.url)+'</div>'
+h+='<div class="act"><button data-id="'+t.id+'" class="tg">'+(t.enabled!==false?"暂停":"启用")+'</button>'
+h+='<button data-id="'+t.id+'" class="rm">删</button></div></div>'
+}
+$("list").innerHTML=h
+Array.from(document.querySelectorAll(".tg")).forEach(function(b){
+b.onclick=async function(){await chrome.runtime.sendMessage({type:"TASK_TOGGLE",taskId:b.dataset.id});load()}
+})
+Array.from(document.querySelectorAll(".rm")).forEach(function(b){
+b.onclick=async function(){if(!confirm("删除?"))return;await chrome.runtime.sendMessage({type:"TASK_DELETE",taskId:b.dataset.id});load()}
+})
+}
+function esc(s){if(!s)return "";return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+
+$("addBtn").onclick=async function(){
+var task={name:$("n").value.trim()||"未命名",url:$("u").value.trim(),interval:parseInt($("iv").value)||60,
+cropX:parseInt($("x").value)||0,cropY:parseInt($("y").value)||0,cropW:parseInt($("w").value)||200,cropH:parseInt($("h").value)||50,
+alertOnChange:$("chg").checked,alertOnTarget:$("tgt").checked,operator:$("op").value,targetValue:$("tv").value.trim(),
+notifyQQ:$("qq").checked,notifySound:$("sd").checked,soundType:$("sf").value}
+if(!task.url){toast("输入URL",true);return}
+if(!task.url.startsWith("http"))task.url="https://"+task.url
+var r=await chrome.runtime.sendMessage({type:"TASK_CREATE",task})
+if(r.success){toast("已添加");$("u").value="";$("n").value="";load()}
+else{toast(r.error?.message||"失败",true)}
+}
+
+$("tsSound").onclick=function(){chrome.runtime.sendMessage({type:"PLAY_SOUND",sound:$("sf").value});$("tsR").textContent="已播放";setTimeout(function(){$("tsR").textContent=""},2000)}
+$("tsQQ").onclick=function(){chrome.runtime.sendMessage({type:"TEST_NOTIFY",text:"WebMonitor Pro测试"});$("tsR").textContent="已发送";setTimeout(function(){$("tsR").textContent=""},2000)}
+
+load()
+</script>
 </body>
 </html>
