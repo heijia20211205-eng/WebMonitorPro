@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Audio Player</title></head>
+<body>
+<script>
+// 提示音播放器 - Offscreen模式下播放音效
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const AUDIO_PRESETS = {
+  beep: { freq: 800, duration: 0.15, type: 'sine', repeat: 2 },
+  ring: { freq: 600, duration: 0.3, type: 'sine', repeat: 3 },
+  alert: { freq: 1000, duration: 0.2, type: 'square', repeat: 4 },
+  siren: { freq: 440, duration: 0.5, type: 'sawtooth', repeat: 3 }
+};
+
+function playPreset(name) {
+  const preset = AUDIO_PRESETS[name] || AUDIO_PRESETS.beep;
+  let count = 0;
+  function playOne() {
+    if (count >= preset.repeat) return;
+    count++;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = preset.type;
+    osc.frequency.setValueAtTime(preset.freq, audioCtx.currentTime);
+    if (name === 'siren') {
+      osc.frequency.linearRampToValueAtTime(880, audioCtx.currentTime + preset.duration / 2);
+      osc.frequency.linearRampToValueAtTime(440, audioCtx.currentTime + preset.duration);
+    }
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + preset.duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + preset.duration);
+    setTimeout(playOne, (preset.duration + 0.1) * 1000);
+  }
+  playOne();
+}
+
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg.type === 'PLAY_SOUND_IN_OFFSCREEN') {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    playPreset(msg.sound || 'beep');
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebMonitor Pro - 设置</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 0 20px;
+      background: #f5f5f5;
+    }
+    h1 { color: #333; font-size: 22px; }
+    .card {
+      background: #fff; border-radius: 10px; padding: 16px 20px;
+      margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .card h3 { margin: 0 0 10px 0; font-size: 16px; display: flex; align-items: center; gap: 6px; }
+    label { display: block; font-size: 13px; color: #555; margin: 6px 0 2px; }
+    input[type="text"], input[type="number"], input[type="url"], select {
+      width: 100%; padding: 8px 10px; border: 1px solid #ccc;
+      border-radius: 6px; font-size: 14px; box-sizing: border-box; margin-bottom: 6px;
+    }
+    input[type="number"] { width: 120px; }
+    .inline-group { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .inline-group > div { flex: 1; min-width: 80px; }
+    .inline-group label { margin-bottom: 0; }
+    .checkbox-row { display: flex; gap: 16px; flex-wrap: wrap; margin: 6px 0; }
+    .checkbox-row label { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; }
+    button {
+      background: #1677ff; color: #fff; border: none; padding: 8px 20px;
+      border-radius: 6px; font-size: 14px; cursor: pointer;
+    }
+    button:hover { background: #4096ff; }
+    button.danger { background: #ff4d4f; }
+    button.danger:hover { background: #ff7875; }
+    .task-item {
+      border: 1px solid #e8e8e8; border-radius: 8px; padding: 12px 14px; margin-bottom: 8px;
+      background: #fafafa;
+    }
+    .task-item .meta { font-size: 13px; color: #333; }
+    .task-item .badge {
+      display: inline-block; background: #1677ff; color: #fff; border-radius: 4px;
+      padding: 1px 6px; font-size: 11px; margin-left: 4px;
+    }
+    .task-actions { margin-top: 6px; display: flex; gap: 8px; }
+    .task-actions button { font-size: 12px; padding: 4px 12px; }
+    .last-value { font-size: 13px; color: #666; margin-top: 4px; }
+    .toast {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      background: #52c41a; color: #fff; padding: 10px 24px; border-radius: 6px;
+      font-size: 14px; display: none; z-index: 999;
+    }
+    .toast.error { background: #ff4d4f; }
+    hr { margin: 12px 0; border: none; border-top: 1px solid #eee; }
+    .status-light {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px;
+    }
+    .status-light.active { background: #52c41a; }
+    .status-light.paused { background: #faad14; }
+    .status-light.off { background: #d9d9d9; }
+    .hint { font-size: 12px; color: #999; margin-top: 2px; }
+    .area-preview { background: #f0f0f0; padding: 8px; border-radius: 6px; font-family: monospace; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h1>🦐 WebMonitor Pro</h1>
+  <div id="toast" class="toast"></div>
+
+  <!-- 新增任务 -->
+  <div class="card">
+    <h3>➕ 新增监控</h3>
+    <label>URL <span style="color:#999;font-weight:normal;">（要监控的网页完整地址）</span></label>
+    <input type="url" id="inputUrl" placeholder="https://example.com/page" />
+    <label>名称</label>
+    <input type="text" id="inputName" placeholder="如：交易所BTC价格" />
+
+    <label>刷新间隔 <span style="color:#999;font-weight:normal;">（秒，最小10秒）</span></label>
+    <input type="number" id="inputInterval" value="60" min="10" />
+
+    <label>监控区域（像素坐标）</label>
+    <div class="inline-group">
+      <div><label>左上 X</label><input type="number" id="inputX" value="0" /></div>
+      <div><label>左上 Y</label><input type="number" id="inputY" value="0" /></div>
+      <div><label>宽度 W</label><input type="number" id="inputW" value="200" /></div>
+      <div><label>高度 H</label><input type="number" id="inputH" value="50" /></div>
+    </div>
+    <div class="hint">💡 打开目标网页按F12 → 检查元素，用"选择元素"工具定位数值区域，看右边CSS盒模型的width/height/top/left</div>
+
+    <label>触发方式</label>
+    <div class="checkbox-row">
+      <label><input type="checkbox" id="inputAlertOnChange" /> 数值变化时提醒</label>
+      <label><input type="checkbox" id="inputAlertOnTarget" /> 数值达到目标时提醒</label>
+    </div>
+    <label>目标数值 <span style="color:#999;font-weight:normal;">（勾选"数值达到目标时提醒"后生效）</span></label>
+    <div class="inline-group">
+      <div><label>运算符</label>
+        <select id="inputOperator">
+          <option value="==">等于 ==</option>
+          <option value=">">大于 &gt;</option>
+          <option value=">=">大于等于 &gt;=</option>
+          <option value="<">小于 &lt;</option>
+          <option value="<=">小于等于 &lt;=</option>
+        </select>
+      </div>
+      <div><label>目标值</label><input type="text" id="inputTargetValue" placeholder="如 50000" /></div>
+    </div>
+
+    <label>提醒方式</label>
+    <div class="checkbox-row">
+      <label><input type="checkbox" id="inputNotifyQQ" checked /> QQ消息提醒</label>
+      <label><input type="checkbox" id="inputNotifySound" checked /> 提示音</label>
+    </div>
+
+    <label>提示音类型</label>
+    <select id="inputSound" style="width:200px">
+      <option value="beep">Beep</option>
+      <option value="ring">Ring</option>
+      <option value="alert">Alert</option>
+      <option value="siren">Siren</option>
+    </select>
+
+    <br><br>
+    <button id="btnAdd">➕ 添加监控</button>
+  </div>
+
+  <!-- 任务列表 -->
+  <div class="card">
+    <h3>📋 监控任务列表</h3>
+    <div id="taskList"><p style="color:#999">暂无任务</p></div>
+  </div>
+
+  <!-- 测试区域 -->
+  <div class="card" style="border:1px dashed #ccc; background:#f9f9f9;">
+    <h3>🔊 测试提醒</h3>
+    <button id="btnTestSound">播放提示音</button>
+    <button id="btnTestNotify" style="margin-left:8px">测试QQ通知</button>
+    <span id="testResult" style="margin-left:12px;font-size:13px;color:#888"></span>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>
