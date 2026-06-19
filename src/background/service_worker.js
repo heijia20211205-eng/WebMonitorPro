@@ -4,8 +4,8 @@
 // =============================================================
 
 // ---- 配置 ----
-const QQ_BOT_TOKEN = '__qqbot_token__'; // 由EasyClaw注入
-let qqNotifyId = '';                    // QQ源ID - 启动时从storage获取
+// QQ通知目标 - 直接设为当前会话ID
+const QQ_NOTIFY_TARGET = '477D0196FFD56EA4A5A3003AE8B6BB16';
 
 // ---- 工具类 ----
 class Storage {
@@ -208,7 +208,7 @@ class TaskManager {
 
   async sendQQNotify(text) {
     // 通过 EasyClaw 的 QQ bot 通道发送
-    const qid = await storage.get('qqNotifyId');
+    const qid = QQ_NOTIFY_TARGET;
     if (!qid) {
       console.log('[QQ] 未配置QQ通知ID');
       return;
@@ -225,7 +225,6 @@ class TaskManager {
       });
       if (!resp.ok) console.warn('[QQ] send notify failed:', await resp.text());
     } catch (e) {
-      // EasyClaw可能未运行，静默处理
       console.warn('[QQ] 无法发送QQ通知:', e.message);
     }
   }
@@ -253,9 +252,7 @@ class TaskManager {
 const taskManager = new TaskManager();
 await taskManager.load();
 
-// 恢复QQ通知ID
-const savedId = await storage.get('qqNotifyId');
-if (savedId) qqNotifyId = savedId;
+
 
 // ---- 消息路由 ----
 chrome.runtime.onMessage.addListener((message, sender, respond) => {
@@ -297,16 +294,7 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
           respond({ success: true });
           break;
         }
-        case 'SET_QQ_ID': {
-          await storage.set('qqNotifyId', message.qqId);
-          qqNotifyId = message.qqId;
-          respond({ success: true });
-          break;
-        }
-        case 'GET_QQ_ID': {
-          respond({ success: true, data: qqNotifyId });
-          break;
-        }
+
         default:
           respond({ success: false, error: { message: `未知消息类型: ${message.type}` } });
       }
