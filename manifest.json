@@ -1,8 +1,8 @@
-{
+﻿{
   "manifest_version": 3,
   "name": "WebMonitor Pro",
   "version": "1.0.0",
-  "description": "监控网页指定区域数值变动，定时刷新触发QQ提醒+提示音",
+  "description": "Web page value monitor - periodic refresh, QQ alert, sound alert",
   "action": {
     "default_popup": "src/popup/popup.html"
   },
@@ -10,6 +10,9 @@
     "service_worker": "src/background/service_worker.js"
   },
   "options_page": "src/options/options.html",
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'unsafe-inline'; object-src 'self'"
+  },
   "permissions": [
     "storage",
     "alarms",

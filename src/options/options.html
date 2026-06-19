@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
@@ -38,12 +38,12 @@ button:hover{background:#4096ff}
 <div id="toast" class="toast"></div>
 
 <div class="box">
-<h3>添加监控</h3>
+<h3>Add Task</h3>
 <label>URL</label><input id="u" placeholder="https://example.com/page">
-<label>名称</label><input id="n" placeholder="价格监控">
-<label>刷新（秒，>=10）</label><input id="iv" type="number" value="60" min="10">
+<label>Name</label><input id="n" placeholder="BTC price">
+<label>Interval (sec, min 10)</label><input id="iv" type="number" value="60" min="10">
 
-<label>区域坐标</label>
+<label>Crop Region</label>
 <div class="gr">
 <div><label>X</label><input id="x" type="number" value="0"></div>
 <div><label>Y</label><input id="y" type="number" value="0"></div>
@@ -51,13 +51,13 @@ button:hover{background:#4096ff}
 <div><label>H</label><input id="h" type="number" value="50"></div>
 </div>
 
-<label>触发</label>
+<label>Trigger</label>
 <div class="cr">
-<label><input id="chg" type="checkbox"> 变化提醒</label>
-<label><input id="tgt" type="checkbox"> 目标提醒</label>
+<label><input id="chg" type="checkbox"> On change</label>
+<label><input id="tgt" type="checkbox"> On target</label>
 </div>
 
-<label>目标值</label>
+<label>Target value</label>
 <div class="gr">
 <div><select id="op">
 <option value="==">==</option><option value=">">&gt;</option><option value=">=">&gt;=</option>
@@ -66,30 +66,144 @@ button:hover{background:#4096ff}
 <div><input id="tv" placeholder="50000"></div>
 </div>
 
-<label>提醒</label>
+<label>Alert</label>
 <div class="cr">
-<label><input id="qq" type="checkbox" checked> QQ消息</label>
-<label><input id="sd" type="checkbox" checked> 提示音</label>
+<label><input id="qq" type="checkbox" checked> QQ msg</label>
+<label><input id="sd" type="checkbox" checked> Sound</label>
 </div>
 
-<label>音效</label><select id="sf" style="width:160px">
+<label>Sound</label><select id="sf" style="width:160px">
 <option>beep</option><option>ring</option><option>alert</option><option>siren</option>
 </select>
 <br><br>
-<button id="addBtn">添加</button>
+<button id="addBtn">Add</button>
 </div>
 
 <div class="box">
-<h3>任务列表</h3>
-<div id="list"><p style="color:#999">暂无</p></div>
+<h3>Tasks</h3>
+<div id="list"><p style="color:#999">No tasks</p></div>
 </div>
 
 <div class="sm">
-<button id="tsSound">测试音</button>
-<button id="tsQQ" style="margin-left:6px">测试QQ</button>
+<button id="tsSound">Test sound</button>
+<button id="tsQQ" style="margin-left:6px">Test QQ</button>
 <span id="tsR" style="margin-left:10px"></span>
 </div>
 
-<script src="options.js"></script>
+<script>
+var DEBUG = true;
+function log(m) { if (DEBUG) console.log('[OPT] ' + m); }
+function $(id) { return document.getElementById(id); }
+function toast(m, e) {
+  var t = $('toast');
+  t.textContent = m;
+  t.className = 'toast' + (e ? ' e' : '');
+  t.style.display = 'block';
+  setTimeout(function() { t.style.display = 'none'; }, 2500);
+}
+
+async function load() {
+  log('loading tasks...');
+  try {
+    var r = await chrome.runtime.sendMessage({ type: 'TASK_LIST' });
+    log('TASK_LIST response: ' + JSON.stringify(r));
+    if (!r || !r.success || !r.data) {
+      $('list').innerHTML = '<p style="color:#999">No tasks</p>';
+      return;
+    }
+    var h = '';
+    r.data.sort(function(a,b) { return a.createdAt - b.createdAt; });
+    for (var i = 0; i < r.data.length; i++) {
+      var t = r.data[i];
+      var s = t.enabled !== false ? 'g' : 'gy';
+      var v = t.lastValue !== undefined ? t.lastValue : '-';
+      h += '<div class="t"><span class="st ' + s + '"></span><span class="n">' + esc(t.name) + '</span> <span class="m">' + t.interval + 's</span>';
+      h += '<div class="v">' + esc(v) + '</div><div class="m">' + esc(t.url) + '</div>';
+      h += '<div class="act"><button data-id="' + t.id + '" class="tg">' + (t.enabled !== false ? 'Pause' : 'Resume') + '</button>';
+      h += '<button data-id="' + t.id + '" class="rm">Del</button></div></div>';
+    }
+    $('list').innerHTML = h;
+    var btns = document.querySelectorAll('.tg');
+    for (var j = 0; j < btns.length; j++) {
+      btns[j].onclick = async function() {
+        var r = await chrome.runtime.sendMessage({ type: 'TASK_TOGGLE', taskId: this.dataset.id });
+        log('toggle result: ' + JSON.stringify(r));
+        if (r.success) load();
+      };
+    }
+    var dbtns = document.querySelectorAll('.rm');
+    for (var j = 0; j < dbtns.length; j++) {
+      dbtns[j].onclick = async function() {
+        if (!confirm('Delete?')) return;
+        var r = await chrome.runtime.sendMessage({ type: 'TASK_DELETE', taskId: this.dataset.id });
+        if (r.success) load();
+      };
+    }
+  } catch(e) {
+    log('load error: ' + e.message);
+    $('list').innerHTML = '<p style="color:red">Error: ' + e.message + '</p>';
+  }
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+$('addBtn').onclick = async function() {
+  log('add button clicked');
+  var task = {
+    name: $('n').value.trim() || 'unnamed',
+    url: $('u').value.trim(),
+    interval: parseInt($('iv').value) || 60,
+    cropX: parseInt($('x').value) || 0,
+    cropY: parseInt($('y').value) || 0,
+    cropW: parseInt($('w').value) || 200,
+    cropH: parseInt($('h').value) || 50,
+    alertOnChange: $('chg').checked,
+    alertOnTarget: $('tgt').checked,
+    operator: $('op').value,
+    targetValue: $('tv').value.trim(),
+    notifyQQ: $('qq').checked,
+    notifySound: $('sd').checked,
+    soundType: $('sf').value
+  };
+  log('task: ' + JSON.stringify(task));
+  if (!task.url) { toast('Input URL', true); return; }
+  if (!task.url.startsWith('http')) task.url = 'https://' + task.url;
+  try {
+    var r = await chrome.runtime.sendMessage({ type: 'TASK_CREATE', task: task });
+    log('TASK_CREATE result: ' + JSON.stringify(r));
+    if (r.success) {
+      toast('Added!');
+      $('u').value = '';
+      $('n').value = '';
+      load();
+    } else {
+      toast(r.error ? r.error.message : 'Failed', true);
+    }
+  } catch(e) {
+    log('sendMessage error: ' + e.message);
+    toast('Error: ' + e.message, true);
+  }
+};
+
+$('tsSound').onclick = function() {
+  log('test sound');
+  chrome.runtime.sendMessage({ type: 'PLAY_SOUND', sound: $('sf').value });
+  $('tsR').textContent = 'Playing...';
+  setTimeout(function() { $('tsR').textContent = ''; }, 2000);
+};
+
+$('tsQQ').onclick = function() {
+  log('test QQ');
+  chrome.runtime.sendMessage({ type: 'TEST_NOTIFY', text: 'WebMonitor Pro test' });
+  $('tsR').textContent = 'Sent!';
+  setTimeout(function() { $('tsR').textContent = ''; }, 2000);
+};
+
+log('page loaded, calling load()');
+load();
+</script>
 </body>
 </html>
